@@ -1,8 +1,6 @@
-﻿using System;
-using System.Collections.Generic;
-using System.IO;
-using System.Linq;
+﻿using System.IO;
 using System.Text;
+
 
 namespace ucucugaParser
 {
@@ -13,33 +11,42 @@ namespace ucucugaParser
         
         static void Main(string[] args)
         {
-            var reader = new StreamReader("../../../ya.txt", Encoding.UTF8);
-            var matrix = new char[lines][];
-            for (var i = 0; i < lines; i++)
-            {
-                matrix[i] = new char[columns];
-                for (var j = 0; j < columns; j++)
-                {
-                    matrix[i][j] = (char)reader.Read();
-                }
-            }
+            var reader = new StreamReader("../../../ascii.txt", Encoding.UTF8);
 
-            var decoded = "";
+            var matrix = reader.ReadToEnd().To2DCharArray();
+            reader.Close();
             
-            var currentChar = new List<char[]>();
-            for (var i = 1; i < columns;)
+            var decoded = "";
+            int startPos = 0, endPos = 1;
+            while (endPos < columns)
             {
-                currentChar.Add(Enumerable.Range(0, matrix.GetLength(0)).Select(x => matrix[x][i]).ToArray());
-                var c = Alphabet.FindChar(currentChar);
-                if (c != null)
+                string c = null;
+                while (c == null)
                 {
-                    decoded += c;
-                    currentChar.Clear();
+                    var sample = new char[lines, endPos - startPos];
+                    for (var i = 0; i < lines; i++)
+                    {
+                        for (var j = startPos; j < endPos; j++)
+                        {
+                            sample[i, j - startPos] = matrix[i, j];
+                        }
+                    }
+
+                    c = Alphabet.FindChar(sample);
+                    if (c == null)
+                        endPos++;
+                    else
+                    {
+                        startPos = endPos;
+                        endPos = startPos + 1;
+                        decoded += c;
+                    }
                 }
-                i++;
             }
             
-            Console.WriteLine(decoded);
+            var writer = new StreamWriter("result.txt");
+            writer.Write(decoded);
+            writer.Close();
         }
     }
 }

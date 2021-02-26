@@ -1,12 +1,11 @@
 ﻿using System;
 using System.Collections.Generic;
-using System.Linq;
 
 namespace ucucugaParser
 {
     public static class Alphabet
     {
-        public static Dictionary<string, char[][]> alphabet = new Dictionary<string, char[][]>
+        public static Dictionary<string, char[,]> alphabet = new Dictionary<string, char[,]>
         {
             {
                 "а", ("╔══╗\n" +
@@ -41,10 +40,10 @@ namespace ucucugaParser
                       "╚╝──").To2DCharArray()
             },
             {
-                "д", ("─╔══╗\n" +
-                      "─║╔╗║\n" +
-                      "─║║║║\n" +
-                      "─║║║║\n" +
+                "д", ("─╔══╗─\n" +
+                      "─║╔╗║─\n" +
+                      "─║║║║─\n" +
+                      "─║║║║─\n" +
                       "╔╝╚╝╚╗\n" +
                       "╚════╝").To2DCharArray()
             },
@@ -361,79 +360,84 @@ namespace ucucugaParser
                       "╚═╝").To2DCharArray()
             },
             {
-                " ", (" \n \n \n \n \n ").To2DCharArray()  // spacebar
+                "'", ("╔╗\n" +
+                      "╚╝\n" +
+                      "──\n" +
+                      "──\n" +
+                      "──\n" +
+                      "──").To2DCharArray()
             },
             {
-                "  ", ("  \n  \n  \n  \n  \n  ").To2DCharArray() // two spacebars
+                " ", (" \n \n \n \n \n ").To2DCharArray()  // spacebar
             }
-            
         };
 
-        public static string FindChar(List<char[]> charsList)
+        public static string FindChar(char[,] possibleLetter)
         {
-            var flag = true;
             foreach (var item in alphabet)
             {
-                flag = true;
-                for (var i = 0; i < charsList.Count; i++)
-                {
-                   if (charsList[i].Equals(item.Value[i])) // error here: item.Value[i] is not a column but a row
-                   {
-                       // 
-                   }
-                   else
-                   {
-                       flag = false;
-                       break;
-                   }
-                }
+                var flag = true;
 
-                if (flag)
+                if (possibleLetter.GetLength(0) == item.Value.GetLength(0) &&
+                    possibleLetter.GetLength(1) == item.Value.GetLength(1))
                 {
-                    return item.Key;
+                    for (var i = 0; i < possibleLetter.GetLength(0); i++)
+                    {
+                        for (var j = 0; j < possibleLetter.GetLength(1); j++)
+                        {
+                            if (possibleLetter[i, j] != item.Value[i, j])
+                                flag = false;
+                        }
+                    }
+
+                    if (flag)
+                        return item.Key;
                 }
             }
-
             return null;
         }
         
-        // debug functions that show that ASCII-art characters are stored correctly
+        // debug functions to ensure that ASCII-art characters are stored correctly
         public static void DrawArt(string key)
         {
-            foreach (var line in alphabet[key])
+            var letter = alphabet[key];
+            for (int i = 0; i < letter.GetLength(0); i++)
             {
-                foreach (var c in line)
+                for (int j = 0; j < letter.GetLength(1); j++)
                 {
-                    Console.Write(c);
+                    Console.Write(letter[i,j]);
                 }
-                Console.Write('\n');
+                Console.WriteLine();
             }
         }
 
         public static void DrawAll()
         {
-            foreach (var item in alphabet.Values)
+            foreach (var item in alphabet.Keys)
             {
-                foreach (var line in item)
-                {
-                    foreach (var c in line)
-                    {
-                        Console.Write(c);
-                    }
-
-                    Console.Write('\n');
-                }
+                DrawArt(item);
                 Console.WriteLine("-----------------------------");
             }
         }
     }
 
-    // String class extension to convert ASCII-art characters to char[][] 
+    // String class extension to convert ASCII-art characters to char[,] 
     public static class StringExtension
     {
-        public static char[][] To2DCharArray(this String input)
+        public static char[,] To2DCharArray(this String input)
         {
-            return input.Split("\n").Select(item => item.ToArray()).ToArray();
+            var str_rows = input.Split("\n");
+            var cols = str_rows[0].Length;
+
+            var result = new char[6, cols];
+            for (int i = 0; i < 6; i++)
+            {
+                for (int j = 0; j < cols; j++)
+                {
+                    result[i, j] = str_rows[i][j];
+                }
+            }
+            return result;
         }
     }
 }
